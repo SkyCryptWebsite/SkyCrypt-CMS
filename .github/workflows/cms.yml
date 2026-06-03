@@ -1,0 +1,65 @@
+name: CMS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "Dockerfile"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "next.config.*"
+      - ".github/workflows/cms.yml"
+  workflow_dispatch:
+
+env:
+  CONTAINER_REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  package:
+    name: Package into Container
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'SkyCryptWebsite' && github.event_name != 'pull_request'
+
+    permissions:
+      packages: write
+      contents: read
+      id-token: write
+      attestations: write
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v6
+
+      - name: Registry login
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.CONTAINER_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push
+        id: push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Attest Build Provenance
+        uses: actions/attest@v4
+        with:
+          subject-name: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true

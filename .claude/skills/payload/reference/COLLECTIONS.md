@@ -17,7 +17,7 @@ export const Posts: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'author', 'status', 'createdAt'],
     group: 'Content', // Organize in admin sidebar
-    description: 'Blog posts and articles',
+    description: 'Newsroom posts and articles',
     listSearchableFields: ['title', 'slug'],
   },
   fields: [
