@@ -5,6 +5,7 @@ import type {
 } from 'payload'
 
 import type { Post } from '@/payload-types'
+import { getConsumerUrls } from '@/utilities/consumers'
 
 type RevalidateBody = {
   slug: string
@@ -13,27 +14,30 @@ type RevalidateBody = {
   previousSlug?: string
 }
 
-const notifyConsumer = (payload: Payload, body: RevalidateBody): void => {
-  const url = process.env.CONSUMER_URL
+const notifyConsumers = (payload: Payload, body: RevalidateBody): void => {
+  const urls = getConsumerUrls()
   const secret = process.env.CMS_REVALIDATE_SECRET
-  if (!url || !secret) {
-    payload.logger.warn('Revalidate skipped: CONSUMER_URL or CMS_REVALIDATE_SECRET unset')
+  if (!urls.length || !secret) {
+    payload.logger.warn('Revalidate skipped: CONSUMER_URLS or CMS_REVALIDATE_SECRET unset')
     return
   }
-  void fetch(`${url}/api/cms-revalidate`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Revalidate-Secret': secret,
-    },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(3000),
-  }).then(
-    (res) => {
-      if (!res.ok) payload.logger.warn(`Revalidate ${body.slug}: ${res.status}`)
-    },
-    (err: Error) => payload.logger.warn(`Revalidate ${body.slug} failed: ${err.message}`),
-  )
+  for (const url of urls) {
+    void fetch(`${url}/api/cms-revalidate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Revalidate-Secret': secret,
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(3000),
+    }).then(
+      (res) => {
+        if (!res.ok) payload.logger.warn(`Revalidate ${body.slug} -> ${url}: ${res.status}`)
+      },
+      (err: Error) =>
+        payload.logger.warn(`Revalidate ${body.slug} -> ${url} failed: ${err.message}`),
+    )
+  }
 }
 
 export const revalidatePostChange: CollectionAfterChangeHook<Post> = ({
@@ -46,7 +50,7 @@ export const revalidatePostChange: CollectionAfterChangeHook<Post> = ({
   const status = doc._status === 'published' ? 'published' : 'draft'
   const prevStatus = previousDoc?._status === 'published' ? 'published' : 'draft'
   if (status !== 'published' && prevStatus !== 'published') return doc
-  notifyConsumer(req.payload, {
+  notifyConsumers(req.payload, {
     slug: doc.slug ?? '',
     operation,
     status,
@@ -59,7 +63,7 @@ export const revalidatePostChange: CollectionAfterChangeHook<Post> = ({
 export const revalidatePostDelete: CollectionAfterDeleteHook<Post> = ({ doc, req }) => {
   if (req.context?.disableRevalidate) return doc
   if (doc._status !== 'published') return doc
-  notifyConsumer(req.payload, {
+  notifyConsumers(req.payload, {
     slug: doc.slug ?? '',
     operation: 'delete',
     status: 'published',

@@ -6,9 +6,10 @@ import { blocks } from '@/blocks'
 import { formatSlug } from '@/hooks/formatSlug'
 import { revalidatePostChange, revalidatePostDelete } from '@/hooks/revalidateConsumer'
 import { setAuthorOnCreate } from '@/hooks/setAuthorOnCreate'
+import { getPrimaryConsumerUrl } from '@/utilities/consumers'
 
 const previewUrl = (data: { slug?: string | null } | undefined) =>
-  `${process.env.CONSUMER_URL}/newsroom/${data?.slug}?preview=1&token=${process.env.CMS_PREVIEW_TOKEN}`
+  `${getPrimaryConsumerUrl() ?? ''}/newsroom/${data?.slug}?preview=1&token=${process.env.CMS_PREVIEW_TOKEN}`
 
 export const Posts: CollectionConfig = {
   slug: 'posts',
