@@ -1,0 +1,31 @@
+# Dependencies & build output (reinstalled / rebuilt inside the image)
+node_modules
+.next
+.turbo
+
+# Local uploads — mounted as a volume at runtime
+media
+
+# Git & tooling
+.git
+.gitignore
+.github
+.vscode
+.idea
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Secrets & local env (never bake into the image)
+.env
+.env.*
+!.env.example
+
+# Tests & misc
+test-results
+playwright-report
+*.local
+npm-debug.log*
+.DS_Store
