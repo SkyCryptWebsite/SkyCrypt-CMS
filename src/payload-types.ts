@@ -239,42 +239,6 @@ export interface Post {
             blockType: 'image';
           }
         | {
-            language: 'ts' | 'js' | 'go' | 'bash' | 'json' | 'sql' | 'svelte';
-            code: string;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'code';
-          }
-        | {
-            variant: 'info' | 'warning' | 'danger' | 'success';
-            title?: string | null;
-            body: {
-              root: {
-                type: string;
-                children: {
-                  type: any;
-                  version: number;
-                  [k: string]: unknown;
-                }[];
-                direction: ('ltr' | 'rtl') | null;
-                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-                indent: number;
-                version: number;
-              };
-              [k: string]: unknown;
-            };
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'callout';
-          }
-        | {
-            url: string;
-            provider: 'youtube' | 'twitter' | 'discord' | 'generic';
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'embed';
-          }
-        | {
             content: {
               root: {
                 type: string;
@@ -573,31 +537,6 @@ export interface PostsSelect<T extends boolean = true> {
               media?: T;
               caption?: T;
               alt?: T;
-              id?: T;
-              blockName?: T;
-            };
-        code?:
-          | T
-          | {
-              language?: T;
-              code?: T;
-              id?: T;
-              blockName?: T;
-            };
-        callout?:
-          | T
-          | {
-              variant?: T;
-              title?: T;
-              body?: T;
-              id?: T;
-              blockName?: T;
-            };
-        embed?:
-          | T
-          | {
-              url?: T;
-              provider?: T;
               id?: T;
               blockName?: T;
             };

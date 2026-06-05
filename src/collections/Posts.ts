@@ -4,7 +4,6 @@ import { authenticated } from '@/access/authenticated'
 import { publicReadPublished } from '@/access/publicReadPublished'
 import { blocks } from '@/blocks'
 import { formatSlug } from '@/hooks/formatSlug'
-import { revalidatePostChange, revalidatePostDelete } from '@/hooks/revalidateConsumer'
 import { setAuthorOnCreate } from '@/hooks/setAuthorOnCreate'
 import { getPrimaryConsumerUrl } from '@/utilities/consumers'
 
@@ -32,8 +31,6 @@ export const Posts: CollectionConfig = {
   timestamps: true,
   hooks: {
     beforeValidate: [setAuthorOnCreate],
-    afterChange: [revalidatePostChange],
-    afterDelete: [revalidatePostDelete],
   },
   fields: [
     { name: 'title', type: 'text', required: true },
